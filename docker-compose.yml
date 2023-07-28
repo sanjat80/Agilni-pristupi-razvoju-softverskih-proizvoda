@@ -1,0 +1,166 @@
+version: '3.7'
+
+services: 
+  currency-exchange:
+    image: ticasanja/currency-exchange:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8000:8000"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka     
+      
+  naming-server:
+    image: ticasanja/naming-server:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8761:8761"
+    networks:
+      - currency-network
+      - user-network
+      - crypto-network
+      - trade-network
+      - transfer-network
+   
+  currency-conversion:
+    image: ticasanja/currency-conversion:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8100:8100"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+      - users-service
+      - currency-exchange
+      - bank-account
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+
+  bank-account:
+    image: ticasanja/bank-account:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8200:8200"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+      - users-service
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka  
+      
+  crypto-exchange:
+    image: ticasanja/crypto-exchange:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8400:8400"
+    networks:
+      - crypto-network
+    depends_on:
+      - naming-server
+      - users-service
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+
+  crypto-conversion:
+    image: ticasanja/crypto-conversion:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8500:8500"
+    networks:
+      - crypto-network
+    depends_on:
+      - naming-server
+      - users-service
+      - crypto-exchange
+      - crypto-wallet
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+    
+  crypto-wallet:
+    image: ticasanja/crypto-wallet:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8300:8300"
+    networks:
+      - crypto-network
+    depends_on:
+      - naming-server
+      - users-service
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+      
+  trade-service:
+    image: ticasanja/trade-service:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8600:8600"
+    networks:
+      - trade-network
+    depends_on:
+      - naming-server
+      - users-service
+      - bank-account
+      - crypto-wallet
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+      
+  transfer-service:
+    image: ticasanja/transfer-service:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8700:8700"
+    networks:
+      - transfer-network
+    depends_on:
+      - naming-server
+      - users-service
+      - bank-account
+      - crypto-wallet
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+      
+  users-service:
+    image: ticasanja/users-service:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8770:8770"
+    networks:
+      - user-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+      
+  api-gateway:
+    image: ticasanja/api-gateway:1.0.0
+    mem_limit: 700m
+    ports:
+      - "8765:8765"
+    networks:
+      - user-network
+    depends_on:
+      - naming-server
+      - users-service
+      - currency-exchange
+      - bank-account
+      - currency-conversion
+      - crypto-exchange
+      - crypto-wallet
+      - crypto-conversion
+      - transfer-service
+      - trade-service
+    environment:
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://naming-server:8761/eureka
+          
+ 
+networks:
+  currency-network:
+  crypto-network:
+  trade-network:
+  transfer-network:
+  user-network:
